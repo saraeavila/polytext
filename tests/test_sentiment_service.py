@@ -1,4 +1,8 @@
-from app.domain.sentiment import SentimentLabel, SentimentPrediction
+from app.domain.sentiment import (
+    SentimentLabel,
+    SentimentPrediction,
+)
+from app.models.registry import ModelRegistry
 from app.schemas.sentiment import SentimentRequest
 from app.services.sentiment import SentimentService
 
@@ -11,8 +15,16 @@ class FakeSentimentModel:
         )
 
 
-def test_sentiment_service_uses_model_prediction():
-    service = SentimentService(model=FakeSentimentModel())
+def test_sentiment_service_uses_registry_model():
+    registry = ModelRegistry()
+
+    registry.register(
+        "sentiment",
+        "es",
+        FakeSentimentModel,
+    )
+
+    service = SentimentService(registry=registry)
 
     request = SentimentRequest(
         text="Me encantó.",

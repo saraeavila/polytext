@@ -1,10 +1,7 @@
 from typing import Protocol
 
-from app.models.sentiment import SentimentModel
-from app.schemas.sentiment import (
-    SentimentRequest,
-    SentimentResponse,
-)
+from app.models.registry import ModelRegistry
+from app.schemas.sentiment import SentimentRequest, SentimentResponse
 
 
 class SentimentAnalyzer(Protocol):
@@ -13,11 +10,16 @@ class SentimentAnalyzer(Protocol):
 
 
 class SentimentService:
-    def __init__(self, model: SentimentModel):
-        self._model = model
+    def __init__(self, registry: ModelRegistry):
+        self._registry = registry
 
     def analyze(self, request: SentimentRequest) -> SentimentResponse:
-        prediction = self._model.predict(request.text)
+        model = self._registry.get(
+            task="sentiment",
+            language=request.language,
+        )
+
+        prediction = model.predict(request.text)
 
         return SentimentResponse(
             language=request.language,
