@@ -1,5 +1,7 @@
+from app.models.adapters.sentiment.cardiff_multilingual import (
+    CardiffMultilingualSentimentModel,
+)
 from app.models.registry import ModelRegistry
-from app.models.sentiment import PlaceholderSentimentModel
 
 
 def create_model_registry() -> ModelRegistry:
@@ -8,7 +10,7 @@ def create_model_registry() -> ModelRegistry:
     registry.register(
         task="sentiment",
         language="*",
-        factory=PlaceholderSentimentModel,
+        factory=CardiffMultilingualSentimentModel,
     )
 
     return registry
