@@ -9,13 +9,12 @@ description = "A multilingual NLP model routing and text intelligence API."
 readme = "README.md"
 requires-python = ">=3.11"
 
+# TODO(V0.6): configure CPU-only PyTorch wheels for Linux Docker builds.
 dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "torch",
-    "transformers",
-    "sentencepiece",
-    "protobuf",
+    "transformers[sentencepiece]",
 ]
 
 [project.optional-dependencies]

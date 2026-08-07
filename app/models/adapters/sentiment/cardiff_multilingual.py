@@ -1,3 +1,5 @@
+from typing import Any, Protocol
+
 from transformers import pipeline
 
 from app.domain.sentiment import SentimentLabel, SentimentPrediction
@@ -13,9 +15,14 @@ LABEL_MAP = {
 }
 
 
+class TextClassifier(Protocol):
+    def __call__(self, text: str, **kwargs: Any) -> list[dict[str, Any]]:
+        ...
+
+
 class CardiffMultilingualSentimentModel:
-    def __init__(self) -> None:
-        self._pipeline = pipeline(
+    def __init__(self, classifier: TextClassifier | None = None) -> None:
+        self._pipeline = classifier or pipeline(
             "text-classification",
             model=MODEL_NAME,
             tokenizer=MODEL_NAME,
@@ -36,5 +43,5 @@ class CardiffMultilingualSentimentModel:
 
         return SentimentPrediction(
             label=LABEL_MAP[raw_label],
-            confidence=float(result["score"]),
+            confidence=round(float(result["score"]), 4),
         )
