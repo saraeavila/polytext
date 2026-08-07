@@ -1,13 +1,8 @@
-from enum import Enum
 from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-
-class SentimentLabel(str, Enum):
-    POSITIVE = "positive"
-    NEUTRAL = "neutral"
-    NEGATIVE = "negative"
+from app.domain.sentiment import SentimentPrediction
 
 
 class SentimentRequest(BaseModel):
@@ -32,11 +27,6 @@ class SentimentRequest(BaseModel):
             return value.lower()
 
         return value
-
-
-class SentimentPrediction(BaseModel):
-    label: SentimentLabel
-    confidence: float = Field(ge=0.0, le=1.0)
 
 
 class SentimentResponse(BaseModel):

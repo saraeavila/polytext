@@ -1,12 +1,9 @@
 from fastapi.testclient import TestClient
 
 from app.api.routes.sentiment import get_sentiment_service
+from app.domain.sentiment import SentimentLabel, SentimentPrediction
 from app.main import app
-from app.schemas.sentiment import (
-    SentimentLabel,
-    SentimentPrediction,
-    SentimentResponse,
-)
+from app.schemas.sentiment import SentimentResponse
 
 
 class FakeSentimentService:

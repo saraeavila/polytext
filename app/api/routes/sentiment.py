@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends
 
+from app.models.sentiment import PlaceholderSentimentModel
 from app.schemas.sentiment import SentimentRequest, SentimentResponse
-from app.services.sentiment import SentimentService
+from app.services.sentiment import SentimentAnalyzer, SentimentService
 
 
 router = APIRouter(
@@ -9,8 +10,9 @@ router = APIRouter(
 )
 
 
-def get_sentiment_service() -> SentimentService:
-    return SentimentService()
+def get_sentiment_service() -> SentimentAnalyzer:
+    model = PlaceholderSentimentModel()
+    return SentimentService(model=model)
 
 
 @router.post("/sentiment", response_model=SentimentResponse)

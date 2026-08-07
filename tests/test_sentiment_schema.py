@@ -1,11 +1,8 @@
 import pytest
 from pydantic import ValidationError
 
-from app.schemas.sentiment import (
-    SentimentLabel,
-    SentimentPrediction,
-    SentimentRequest,
-)
+from app.domain.sentiment import SentimentLabel, SentimentPrediction
+from app.schemas.sentiment import SentimentRequest
 
 
 def test_valid_sentiment_request():

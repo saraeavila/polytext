@@ -8,8 +8,6 @@ app = FastAPI(
 )
 
 app.include_router(sentiment_router, prefix="/v1")
-app.include_router(entity_router, prefix="/v1")
-app.include_router(summarization_router, prefix="/v1")
 
 @app.get("/health")
 def health_check():
