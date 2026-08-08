@@ -3,8 +3,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.api.errors import register_exception_handlers
+from app.api.middleware.request_logging import RequestLoggingMiddleware
 from app.api.routes.ner import router as ner_router
 from app.api.routes.sentiment import router as sentiment_router
+from app.core.logging import configure_logging
 from app.models.adapters.language.fasttext_detector import (
     FastTextLanguageDetector,
 )
@@ -16,12 +18,16 @@ async def lifespan(app: FastAPI):
     app.state.language_detector = FastTextLanguageDetector()
     yield
 
+configure_logging()
+
 app = FastAPI(
     title="PolyText API",
     description="Multilingual NLP model routing and text intelligence.",
     version="0.1.0",
     lifespan=lifespan,
 )
+
+app.add_middleware(RequestLoggingMiddleware)
 
 register_exception_handlers(app)
 

@@ -1,5 +1,9 @@
+import logging
 from collections.abc import Callable
 from typing import Any
+
+
+logger = logging.getLogger("polytext.models")
 
 
 class UnsupportedModelError(Exception):
@@ -26,14 +30,30 @@ class ModelRegistry:
 
         if exact_key in self._factories:
             key = exact_key
+            route = "exact"
         elif fallback_key in self._factories:
             key = fallback_key
+            route = "fallback"
         else:
             raise UnsupportedModelError(
                 f"No model available for task={task!r}, language={language!r}"
             )
 
         if key not in self._models:
-            self._models[key] = self._factories[key]()
+            model = self._factories[key]()
+            self._models[key] = model
+            load = "cold"
+        else:
+            model = self._models[key]
+            load = "reused"
 
-        return self._models[key]
+        logger.info(
+            "model_resolved task=%s language=%s route=%s model=%s load=%s",
+            task,
+            language,
+            route,
+            type(model).__name__,
+            load,
+        )
+
+        return model
