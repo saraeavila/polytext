@@ -9,7 +9,6 @@ class LanguageDetector(Protocol):
 
 class PlaceholderLanguageDetector:
     def detect(self, text: str) -> LanguagePrediction:
-        return LanguagePrediction(
-            code="en",
-            confidence=0.0,
+        raise NotImplementedError(
+            "Language detection has not been configured."
         )
