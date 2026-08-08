@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from app.api.routes.ner import router as ner_router
 from app.api.routes.sentiment import router as sentiment_router
 from app.models.adapters.language.fasttext_detector import (
     FastTextLanguageDetector,
@@ -22,6 +23,7 @@ app = FastAPI(
 )
 
 app.include_router(sentiment_router, prefix="/v1")
+app.include_router(ner_router, prefix="/v1")
 
 @app.get("/health")
 def health_check():

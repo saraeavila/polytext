@@ -4,6 +4,7 @@ from app.models.adapters.sentiment.cardiff_multilingual import (
 from app.models.adapters.sentiment.robertuito_spanish import (
     RobertuitoSpanishSentimentModel,
 )
+from app.models.ner import PlaceholderNERModel
 from app.models.registry import ModelRegistry
 
 
@@ -20,6 +21,12 @@ def create_model_registry() -> ModelRegistry:
         task="sentiment",
         language="*",
         factory=CardiffMultilingualSentimentModel,
+    )
+
+    registry.register(
+        task="ner",
+        language="*",
+        factory=PlaceholderNERModel,
     )
 
     return registry
