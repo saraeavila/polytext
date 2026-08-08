@@ -1,4 +1,7 @@
-from app.domain.language import LanguagePrediction
+from app.domain.language import (
+    LanguagePrediction,
+    LanguageResolution,
+)
 from app.models.language import LanguageDetector
 
 
@@ -25,3 +28,23 @@ class LanguageService:
             return "*"
 
         return prediction.code
+
+    def resolve(
+        self,
+        text: str,
+        requested_language: str | None,
+    ) -> LanguageResolution:
+        if requested_language is not None:
+            return LanguageResolution(
+                code=requested_language,
+                confidence=None,
+                routing_language=requested_language,
+            )
+
+        prediction = self.detect(text)
+
+        return LanguageResolution(
+            code=prediction.code,
+            confidence=prediction.confidence,
+            routing_language=self.routing_language(prediction),
+        )

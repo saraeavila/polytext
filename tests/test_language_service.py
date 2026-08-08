@@ -51,3 +51,62 @@ def test_low_confidence_language_uses_fallback():
     )
 
     assert service.routing_language(prediction) == "*"
+
+
+def test_resolve_explicit_language_skips_detection():
+    detector = FakeLanguageDetector()
+
+    service = LanguageService(
+        detector=detector,
+        min_confidence=0.70,
+    )
+
+    result = service.resolve(
+        text="Me encantó.",
+        requested_language="es",
+    )
+
+    assert result.code == "es"
+    assert result.confidence is None
+    assert result.routing_language == "es"
+
+
+def test_resolve_detected_language():
+    detector = FakeLanguageDetector()
+
+    service = LanguageService(
+        detector=detector,
+        min_confidence=0.70,
+    )
+
+    result = service.resolve(
+        text="Me encantó.",
+        requested_language=None,
+    )
+
+    assert result.code == "es"
+    assert result.confidence == 0.98
+    assert result.routing_language == "es"
+
+
+def test_resolve_low_confidence_uses_fallback():
+    class LowConfidenceDetector:
+        def detect(self, text: str) -> LanguagePrediction:
+            return LanguagePrediction(
+                code="es",
+                confidence=0.30,
+            )
+
+    service = LanguageService(
+        detector=LowConfidenceDetector(),
+        min_confidence=0.70,
+    )
+
+    result = service.resolve(
+        text="Texto corto.",
+        requested_language=None,
+    )
+
+    assert result.code == "es"
+    assert result.confidence == 0.30
+    assert result.routing_language == "*"

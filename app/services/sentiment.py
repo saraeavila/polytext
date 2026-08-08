@@ -21,34 +21,22 @@ class SentimentService:
         self._language_service = language_service
 
     def analyze(self, request: SentimentRequest) -> SentimentResponse:
-        if request.language is not None:
-            routing_language = request.language
-
-            language = LanguageInfo(
-                code=request.language,
-                confidence=None,
-            )
-
-        else:
-            prediction = self._language_service.detect(request.text)
-
-            routing_language = self._language_service.routing_language(
-                prediction
-            )
-
-            language = LanguageInfo(
-                code=prediction.code,
-                confidence=prediction.confidence,
-            )
+        language = self._language_service.resolve(
+            text=request.text,
+            requested_language=request.language,
+        )
 
         model = self._registry.get(
             task="sentiment",
-            language=routing_language,
+            language=language.routing_language,
         )
 
         prediction = model.predict(request.text)
 
         return SentimentResponse(
-            language=language,
+            language=LanguageInfo(
+                code=language.code,
+                confidence=language.confidence,
+            ),
             sentiment=prediction,
         )

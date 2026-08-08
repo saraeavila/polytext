@@ -21,34 +21,22 @@ class NERService:
         self._language_service = language_service
 
     def analyze(self, request: NERRequest) -> NERResponse:
-        if request.language is not None:
-            routing_language = request.language
-
-            language = LanguageInfo(
-                code=request.language,
-                confidence=None,
-            )
-
-        else:
-            detected = self._language_service.detect(request.text)
-
-            routing_language = self._language_service.routing_language(
-                detected
-            )
-
-            language = LanguageInfo(
-                code=detected.code,
-                confidence=detected.confidence,
-            )
+        language = self._language_service.resolve(
+            text=request.text,
+            requested_language=request.language,
+        )
 
         model = self._registry.get(
             task="ner",
-            language=routing_language,
+            language=language.routing_language,
         )
 
         entities = model.predict(request.text)
 
         return NERResponse(
-            language=language,
+            language=LanguageInfo(
+                code=language.code,
+                confidence=language.confidence,
+            ),
             entities=entities,
         )

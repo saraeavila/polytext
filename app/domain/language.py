@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -14,3 +16,10 @@ class LanguagePrediction(BaseModel):
             return value.lower()
 
         return value
+
+
+@dataclass(frozen=True)
+class LanguageResolution:
+    code: str
+    confidence: float | None
+    routing_language: str
