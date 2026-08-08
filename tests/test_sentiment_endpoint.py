@@ -3,13 +3,17 @@ from fastapi.testclient import TestClient
 from app.api.routes.sentiment import get_sentiment_service
 from app.domain.sentiment import SentimentLabel, SentimentPrediction
 from app.main import app
+from app.schemas.language import LanguageInfo
 from app.schemas.sentiment import SentimentResponse
 
 
 class FakeSentimentService:
     def analyze(self, request):
         return SentimentResponse(
-            language=request.language,
+            language=LanguageInfo(
+                code=request.language,
+                confidence=None,
+            ),
             sentiment=SentimentPrediction(
                 label=SentimentLabel.POSITIVE,
                 confidence=0.95,
@@ -38,7 +42,10 @@ def test_sentiment_endpoint():
     assert response.status_code == 200
 
     assert response.json() == {
-        "language": "es",
+        "language": {
+            "code": "es",
+            "confidence": None,
+        },
         "sentiment": {
             "label": "positive",
             "confidence": 0.95,
@@ -56,7 +63,7 @@ def test_sentiment_endpoint_normalizes_language():
     )
 
     assert response.status_code == 200
-    assert response.json()["language"] == "en"
+    assert response.json()["language"]["code"] == "en"
 
 
 def test_sentiment_endpoint_rejects_blank_text():

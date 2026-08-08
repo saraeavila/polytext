@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Request
 
 from app.schemas.sentiment import SentimentRequest, SentimentResponse
+from app.services.language import LanguageService
 from app.services.sentiment import SentimentAnalyzer, SentimentService
 
 
@@ -11,7 +12,16 @@ router = APIRouter(
 
 def get_sentiment_service(request: Request) -> SentimentAnalyzer:
     registry = request.app.state.model_registry
-    return SentimentService(registry=registry)
+    detector = request.app.state.language_detector
+
+    language_service = LanguageService(
+        detector=detector,
+    )
+
+    return SentimentService(
+        registry=registry,
+        language_service=language_service,
+    )
 
 
 @router.post("/sentiment", response_model=SentimentResponse)

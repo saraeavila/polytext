@@ -3,13 +3,15 @@ from typing import Any
 from pydantic import BaseModel, Field, field_validator
 
 from app.domain.sentiment import SentimentPrediction
+from app.schemas.language import LanguageInfo
 
 
 class SentimentRequest(BaseModel):
     text: str = Field(min_length=1, max_length=5000)
 
-    language: str = Field(
-        pattern=r"^[a-z]{2,3}(?:-[a-z]{2,4})?$"
+    language: str | None = Field(
+        default=None,
+        pattern=r"^[a-z]{2,3}(?:-[a-z]{2,4})?$",
     )
 
     @field_validator("text")
@@ -30,5 +32,5 @@ class SentimentRequest(BaseModel):
 
 
 class SentimentResponse(BaseModel):
-    language: str
+    language: LanguageInfo
     sentiment: SentimentPrediction
