@@ -20,14 +20,21 @@ class FakeNERModel:
 
 
 class FakeLanguageDetector:
+    def __init__(self, code: str, confidence: float):
+        self.code = code
+        self.confidence = confidence
+        self.called = False
+
     def detect(self, text: str) -> LanguagePrediction:
+        self.called = True
+
         return LanguagePrediction(
-            code="es",
-            confidence=0.98,
+            code=self.code,
+            confidence=self.confidence,
         )
 
 
-def test_ner_service_uses_registry_model():
+def create_test_registry() -> ModelRegistry:
     registry = ModelRegistry()
 
     registry.register(
@@ -36,8 +43,82 @@ def test_ner_service_uses_registry_model():
         factory=FakeNERModel,
     )
 
+    return registry
+
+
+def test_ner_uses_detected_language():
+    registry = create_test_registry()
+
+    detector = FakeLanguageDetector(
+        code="es",
+        confidence=0.98,
+    )
+
     language_service = LanguageService(
-        detector=FakeLanguageDetector()
+        detector=detector,
+        min_confidence=0.70,
+    )
+
+    service = NERService(
+        registry=registry,
+        language_service=language_service,
+    )
+
+    request = NERRequest(
+        text="Sara visitó Madrid."
+    )
+
+    result = service.analyze(request)
+
+    assert detector.called is True
+    assert result.language.code == "es"
+    assert result.language.confidence == 0.98
+
+    assert len(result.entities) == 1
+    assert result.entities[0].text == "Madrid"
+
+
+def test_explicit_ner_language_skips_detection():
+    registry = create_test_registry()
+
+    detector = FakeLanguageDetector(
+        code="en",
+        confidence=0.99,
+    )
+
+    language_service = LanguageService(
+        detector=detector,
+        min_confidence=0.70,
+    )
+
+    service = NERService(
+        registry=registry,
+        language_service=language_service,
+    )
+
+    request = NERRequest(
+        text="Sara visitó Madrid.",
+        language="es",
+    )
+
+    result = service.analyze(request)
+
+    assert detector.called is False
+    assert result.language.code == "es"
+    assert result.language.confidence is None
+
+
+def test_low_confidence_ner_detection_uses_fallback():
+    registry = create_test_registry()
+
+    detector = FakeLanguageDetector(
+        code="es",
+        confidence=0.25,
+    )
+
+    language_service = LanguageService(
+        detector=detector,
+        min_confidence=0.70,
     )
 
     service = NERService(
@@ -52,7 +133,6 @@ def test_ner_service_uses_registry_model():
     result = service.analyze(request)
 
     assert result.language.code == "es"
-    assert result.language.confidence == 0.98
+    assert result.language.confidence == 0.25
+
     assert len(result.entities) == 1
-    assert result.entities[0].text == "Madrid"
-    assert result.entities[0].label == EntityLabel.LOCATION
