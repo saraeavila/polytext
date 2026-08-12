@@ -1,19 +1,19 @@
+import pytest
 from fastapi.testclient import TestClient
 
 from app.api.routes.sentiment import get_sentiment_service
-from app.domain.sentiment import SentimentLabel, SentimentPrediction
 from app.main import app
-from app.schemas.language import LanguageInfo
+from app.domain.sentiment import SentimentLabel, SentimentPrediction
 from app.schemas.sentiment import SentimentResponse
 
 
 class FakeSentimentService:
     def analyze(self, request):
         return SentimentResponse(
-            language=LanguageInfo(
-                code=request.language,
-                confidence=None,
-            ),
+            language={
+                "code": request.language,
+                "confidence": None,
+            },
             sentiment=SentimentPrediction(
                 label=SentimentLabel.POSITIVE,
                 confidence=0.95,
@@ -21,16 +21,22 @@ class FakeSentimentService:
         )
 
 
-def override_sentiment_service():
-    return FakeSentimentService()
+@pytest.fixture
+def client():
+    app.dependency_overrides[get_sentiment_service] = (
+        lambda: FakeSentimentService()
+    )
+
+    with TestClient(app) as client:
+        yield client
+
+    app.dependency_overrides.pop(
+        get_sentiment_service,
+        None,
+    )
 
 
-app.dependency_overrides[get_sentiment_service] = override_sentiment_service
-
-client = TestClient(app)
-
-
-def test_sentiment_endpoint():
+def test_sentiment_endpoint(client):
     response = client.post(
         "/v1/sentiment",
         json={
@@ -53,7 +59,7 @@ def test_sentiment_endpoint():
     }
 
 
-def test_sentiment_endpoint_normalizes_language():
+def test_sentiment_endpoint_normalizes_language(client):
     response = client.post(
         "/v1/sentiment",
         json={
@@ -66,7 +72,7 @@ def test_sentiment_endpoint_normalizes_language():
     assert response.json()["language"]["code"] == "en"
 
 
-def test_sentiment_endpoint_rejects_blank_text():
+def test_sentiment_endpoint_rejects_blank_text(client):
     response = client.post(
         "/v1/sentiment",
         json={
@@ -78,7 +84,7 @@ def test_sentiment_endpoint_rejects_blank_text():
     assert response.status_code == 422
 
 
-def test_sentiment_endpoint_rejects_invalid_language():
+def test_sentiment_endpoint_rejects_invalid_language(client):
     response = client.post(
         "/v1/sentiment",
         json={

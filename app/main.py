@@ -4,6 +4,7 @@ from fastapi import FastAPI
 
 from app.api.errors import register_exception_handlers
 from app.api.middleware.request_logging import RequestLoggingMiddleware
+from app.api.routes.api_users import router as api_users_router
 from app.api.routes.ner import router as ner_router
 from app.api.routes.sentiment import router as sentiment_router
 from app.core.logging import configure_logging
@@ -33,6 +34,7 @@ register_exception_handlers(app)
 
 app.include_router(sentiment_router, prefix="/v1")
 app.include_router(ner_router, prefix="/v1")
+app.include_router(api_users_router, prefix="/v1")
 
 @app.get("/health")
 def health_check():
