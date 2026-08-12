@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 
+from app.api.dependencies.auth import require_api_key
 from app.schemas.ner import NERRequest, NERResponse
 from app.services.language import LanguageService
 from app.services.ner import NERAnalyzer, NERService
@@ -24,7 +25,11 @@ def get_ner_service(request: Request) -> NERAnalyzer:
     )
 
 
-@router.post("/entities", response_model=NERResponse)
+@router.post(
+    "/entities",
+    response_model=NERResponse,
+    dependencies=[Depends(require_api_key)],
+)
 def extract_entities(
     request: NERRequest,
     service: NERAnalyzer = Depends(get_ner_service),

@@ -15,6 +15,9 @@ class APIUserRepository:
 
         return self._db.scalar(statement)
 
+    def get_by_id(self, user_id: int) -> APIUser | None:
+        return self._db.get(APIUser, user_id)
+
     def create(
         self,
         name: str,

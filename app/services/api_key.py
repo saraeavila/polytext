@@ -2,11 +2,16 @@ from dataclasses import dataclass
 
 from app.db.models.api_key import APIKey
 from app.repositories.api_key import APIKeyRepository
+from app.repositories.api_user import APIUserRepository
 from app.security.api_keys import (
     generate_api_key,
     get_api_key_prefix,
     hash_api_key,
 )
+
+
+class APIUserNotFoundError(Exception):
+    pass
 
 
 @dataclass(frozen=True)
@@ -19,13 +24,19 @@ class APIKeyService:
     def __init__(
         self,
         repository: APIKeyRepository,
+        user_repository: APIUserRepository,
     ):
         self._repository = repository
+        self._user_repository = user_repository
 
-    def create_key(
-        self,
-        user_id: int,
-    ) -> CreatedAPIKey:
+    def create_key(self, user_id: int) -> CreatedAPIKey:
+        user = self._user_repository.get_by_id(user_id)
+
+        if user is None:
+            raise APIUserNotFoundError(
+                f"API user with id {user_id} does not exist"
+            )
+
         plaintext_key = generate_api_key()
 
         api_key = self._repository.create(

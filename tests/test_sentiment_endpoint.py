@@ -1,6 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
+from app.api.dependencies.auth import require_api_key
 from app.api.routes.sentiment import get_sentiment_service
 from app.main import app
 from app.domain.sentiment import SentimentLabel, SentimentPrediction
@@ -27,11 +28,17 @@ def client():
         lambda: FakeSentimentService()
     )
 
+    app.dependency_overrides[require_api_key] = lambda: object()
+
     with TestClient(app) as client:
         yield client
 
     app.dependency_overrides.pop(
         get_sentiment_service,
+        None,
+    )
+    app.dependency_overrides.pop(
+        require_api_key,
         None,
     )
 
