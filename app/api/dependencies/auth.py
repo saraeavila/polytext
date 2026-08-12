@@ -1,4 +1,4 @@
-from fastapi import Depends, HTTPException, Security
+from fastapi import Depends, HTTPException, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
@@ -12,6 +12,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def require_api_key(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Security(
         bearer_scheme
     ),
@@ -36,5 +37,7 @@ def require_api_key(
             detail="Invalid or revoked API key",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    request.state.api_key_id = api_key.id
 
     return api_key
