@@ -16,6 +16,9 @@ dependencies = [
     "torch",
     "transformers[sentencepiece]",
     "fasttext-community>=0.11.7,<0.12",
+    "sqlalchemy>=2.0,<3",
+    "psycopg[binary]>=3,<4",
+    "alembic>=1.18,<2",
 ]
 
 [project.optional-dependencies]
