@@ -1,5 +1,6 @@
 from typing import Protocol
 
+from app.core.metrics import observe_model_inference
 from app.models.registry import ModelRegistry
 from app.schemas.language import LanguageInfo
 from app.schemas.sentiment import SentimentRequest, SentimentResponse
@@ -31,7 +32,11 @@ class SentimentService:
             language=language.routing_language,
         )
 
-        prediction = model.predict(request.text)
+        with observe_model_inference(
+            task="sentiment",
+            model=model,
+        ):
+            prediction = model.predict(request.text)
 
         return SentimentResponse(
             language=LanguageInfo(

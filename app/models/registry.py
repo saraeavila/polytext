@@ -2,6 +2,10 @@ import logging
 from collections.abc import Callable
 from typing import Any
 
+from app.core.metrics import (
+    MODEL_RESOLUTIONS_TOTAL,
+)
+
 
 logger = logging.getLogger("polytext.models")
 
@@ -46,6 +50,13 @@ class ModelRegistry:
         else:
             model = self._models[key]
             load = "reused"
+
+        MODEL_RESOLUTIONS_TOTAL.labels(
+            task=task,
+            route=route,
+            model=type(model).__name__,
+            load=load,
+        ).inc()
 
         logger.info(
             "model_resolved task=%s language=%s route=%s model=%s load=%s",

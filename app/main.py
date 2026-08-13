@@ -9,6 +9,9 @@ from app.api.routes.api_users import router as api_users_router
 from app.api.routes.classification import (
     router as classification_router,
 )
+from app.api.routes.metrics import (
+    router as metrics_router,
+)
 from app.api.routes.ner import router as ner_router
 from app.api.routes.sentiment import router as sentiment_router
 from app.api.routes.usage import router as usage_router
@@ -43,6 +46,7 @@ app.include_router(api_users_router, prefix="/v1")
 app.include_router(api_keys_router, prefix="/v1")
 app.include_router(usage_router, prefix="/v1")
 app.include_router(classification_router, prefix="/v1")
+app.include_router(metrics_router)
 
 @app.get("/health")
 def health_check():

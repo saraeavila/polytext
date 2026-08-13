@@ -11,6 +11,8 @@ RUN python -m pip install --upgrade pip \
 
 COPY pyproject.toml README.md ./
 COPY app ./app
+COPY alembic.ini ./alembic.ini
+COPY alembic ./alembic
 
 RUN python -m pip install .
 

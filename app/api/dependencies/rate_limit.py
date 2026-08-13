@@ -1,6 +1,9 @@
 from fastapi import Depends, HTTPException
 
 from app.api.dependencies.auth import require_api_key
+from app.core.metrics import (
+    RATE_LIMIT_REJECTIONS_TOTAL,
+)
 from app.core.redis import redis_client
 from app.db.models.api_key import APIKey
 from app.repositories.redis_rate_limit import (
@@ -28,6 +31,8 @@ def enforce_rate_limit(
         )
 
     except RateLimitExceededError as exc:
+        RATE_LIMIT_REJECTIONS_TOTAL.inc()
+
         raise HTTPException(
             status_code=429,
             detail=str(exc),

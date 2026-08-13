@@ -1,3 +1,4 @@
+from app.core.metrics import observe_model_inference
 from app.models.registry import ModelRegistry
 from app.schemas.classification import (
     ClassificationRequest,
@@ -36,12 +37,16 @@ class ClassificationService:
             language=language.routing_language,
         )
 
-        predictions = model.predict(
-            text=request.text,
-            candidate_labels=(
-                request.candidate_labels
-            ),
-        )
+        with observe_model_inference(
+            task="classification",
+            model=model,
+        ):
+            predictions = model.predict(
+                text=request.text,
+                candidate_labels=(
+                    request.candidate_labels
+                ),
+            )
 
         return ClassificationResponse(
             language=LanguageInfo(

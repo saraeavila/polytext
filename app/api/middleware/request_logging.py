@@ -6,12 +6,33 @@ import anyio
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
+from app.core.metrics import (
+    HTTP_REQUEST_DURATION_SECONDS,
+    HTTP_REQUESTS_TOTAL,
+)
 from app.db.session import SessionLocal
 from app.repositories.request_usage import RequestUsageRepository
 from app.services.usage import UsageService
 
 
 logger = logging.getLogger("polytext.requests")
+
+
+def get_route_template(
+    request: Request,
+) -> str:
+    route = request.scope.get("route")
+
+    route_path = getattr(
+        route,
+        "path",
+        None,
+    )
+
+    if route_path is None:
+        return "unmatched"
+
+    return route_path
 
 
 def persist_usage(
@@ -92,6 +113,21 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 latency_ms=duration_ms,
             )
 
+            route = get_route_template(request)
+
+            HTTP_REQUESTS_TOTAL.labels(
+                method=request.method,
+                route=route,
+                status="500",
+            ).inc()
+
+            HTTP_REQUEST_DURATION_SECONDS.labels(
+                method=request.method,
+                route=route,
+            ).observe(
+                duration_ms / 1000
+            )
+
             logger.exception(
                 "request_failed request_id=%s method=%s path=%s duration_ms=%.2f",
                 request_id,
@@ -110,6 +146,22 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             status_code=response.status_code,
             latency_ms=duration_ms,
         )
+
+        route = get_route_template(request)
+
+        if route != "/metrics":
+            HTTP_REQUESTS_TOTAL.labels(
+                method=request.method,
+                route=route,
+                status=str(response.status_code),
+            ).inc()
+
+            HTTP_REQUEST_DURATION_SECONDS.labels(
+                method=request.method,
+                route=route,
+            ).observe(
+                duration_ms / 1000
+            )
 
         response.headers["X-Request-ID"] = request_id
 

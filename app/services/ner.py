@@ -1,5 +1,6 @@
 from typing import Protocol
 
+from app.core.metrics import observe_model_inference
 from app.models.registry import ModelRegistry
 from app.schemas.language import LanguageInfo
 from app.schemas.ner import NERRequest, NERResponse
@@ -31,7 +32,11 @@ class NERService:
             language=language.routing_language,
         )
 
-        entities = model.predict(request.text)
+        with observe_model_inference(
+            task="ner",
+            model=model,
+        ):
+            entities = model.predict(request.text)
 
         return NERResponse(
             language=LanguageInfo(
