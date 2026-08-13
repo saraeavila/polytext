@@ -3,10 +3,8 @@ from typing import Protocol
 
 import fasttext
 
+from app.core.config import get_settings
 from app.domain.language import LanguagePrediction
-
-
-DEFAULT_MODEL_PATH = Path("resources/models/lid.176.ftz")
 
 
 class FastTextModel(Protocol):
@@ -18,11 +16,19 @@ class FastTextLanguageDetector:
     def __init__(
         self,
         model: FastTextModel | None = None,
-        model_path: Path = DEFAULT_MODEL_PATH,
+        model_path: str | None = None,
     ) -> None:
-        if model is not None:
-            self._model = model
-        else:
+        self._model = model
+
+        if model is None:
+            if model_path is None:
+                model_path = (
+                    get_settings()
+                    .fasttext_model_path
+                )
+
+            model_path = Path(model_path)
+
             if not model_path.exists():
                 raise FileNotFoundError(
                     f"Language model not found at {model_path}"

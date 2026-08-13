@@ -1,19 +1,21 @@
-import os
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.core.config import get_settings
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+psycopg://polytext:polytext@localhost:5432/polytext",
-)
+
+settings = get_settings()
+
+DATABASE_URL = settings.database_url
+
 
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
 )
+
 
 SessionLocal = sessionmaker(
     bind=engine,
@@ -27,5 +29,6 @@ def get_db() -> Generator[Session, None, None]:
 
     try:
         yield db
+
     finally:
         db.close()
