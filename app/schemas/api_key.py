@@ -9,3 +9,10 @@ class APIKeyCreateResponse(BaseModel):
     key_prefix: str
     key: str
     created_at: datetime
+
+
+class APIKeyRevokeResponse(BaseModel):
+    id: int
+    user_id: int
+    key_prefix: str
+    revoked_at: datetime

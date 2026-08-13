@@ -1,11 +1,18 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.dependencies.auth import require_api_key
+from app.db.models.api_key import APIKey
 from app.db.session import get_db
 from app.repositories.api_key import APIKeyRepository
 from app.repositories.api_user import APIUserRepository
-from app.schemas.api_key import APIKeyCreateResponse
+from app.schemas.api_key import (
+    APIKeyCreateResponse,
+    APIKeyRevokeResponse,
+)
 from app.services.api_key import (
+    APIKeyForbiddenError,
+    APIKeyNotFoundError,
     APIKeyService,
     APIUserNotFoundError,
 )
@@ -48,4 +55,39 @@ def create_api_key(
         key_prefix=result.api_key.key_prefix,
         key=result.plaintext_key,
         created_at=result.api_key.created_at,
+    )
+
+
+@router.post(
+    "/keys/{api_key_id}/revoke",
+    response_model=APIKeyRevokeResponse,
+)
+def revoke_api_key(
+    api_key_id: int,
+    current_key: APIKey = Depends(require_api_key),
+    service: APIKeyService = Depends(get_api_key_service),
+) -> APIKeyRevokeResponse:
+    try:
+        revoked = service.revoke_key(
+            api_key_id=api_key_id,
+            requesting_user_id=current_key.user_id,
+        )
+
+    except APIKeyNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
+
+    except APIKeyForbiddenError as exc:
+        raise HTTPException(
+            status_code=403,
+            detail=str(exc),
+        ) from exc
+
+    return APIKeyRevokeResponse(
+        id=revoked.id,
+        user_id=revoked.user_id,
+        key_prefix=revoked.key_prefix,
+        revoked_at=revoked.revoked_at,
     )

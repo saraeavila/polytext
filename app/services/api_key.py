@@ -14,6 +14,14 @@ class APIUserNotFoundError(Exception):
     pass
 
 
+class APIKeyNotFoundError(Exception):
+    pass
+
+
+class APIKeyForbiddenError(Exception):
+    pass
+
+
 @dataclass(frozen=True)
 class CreatedAPIKey:
     api_key: APIKey
@@ -49,3 +57,22 @@ class APIKeyService:
             api_key=api_key,
             plaintext_key=plaintext_key,
         )
+
+    def revoke_key(
+        self,
+        api_key_id: int,
+        requesting_user_id: int,
+    ) -> APIKey:
+        api_key = self._repository.get_by_id(api_key_id)
+
+        if api_key is None:
+            raise APIKeyNotFoundError(
+                f"API key with id {api_key_id} does not exist"
+            )
+
+        if api_key.user_id != requesting_user_id:
+            raise APIKeyForbiddenError(
+                "You cannot revoke an API key belonging to another user"
+            )
+
+        return self._repository.revoke(api_key)

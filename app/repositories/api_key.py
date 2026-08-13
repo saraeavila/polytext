@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -36,3 +38,15 @@ class APIKeyRepository:
         )
 
         return self._db.scalar(statement)
+
+    def get_by_id(self, api_key_id: int) -> APIKey | None:
+        return self._db.get(APIKey, api_key_id)
+
+    def revoke(self, api_key: APIKey) -> APIKey:
+        if api_key.revoked_at is None:
+            api_key.revoked_at = datetime.now(timezone.utc)
+
+            self._db.commit()
+            self._db.refresh(api_key)
+
+        return api_key
