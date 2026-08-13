@@ -1,10 +1,11 @@
 from fastapi import Depends, HTTPException
-from sqlalchemy.orm import Session
 
 from app.api.dependencies.auth import require_api_key
+from app.core.redis import redis_client
 from app.db.models.api_key import APIKey
-from app.db.session import get_db
-from app.repositories.request_usage import RequestUsageRepository
+from app.repositories.redis_rate_limit import (
+    RedisRateLimitRepository,
+)
 from app.services.rate_limit import (
     RateLimitExceededError,
     RateLimitService,
@@ -13,10 +14,11 @@ from app.services.rate_limit import (
 
 def enforce_rate_limit(
     current_key: APIKey = Depends(require_api_key),
-    db: Session = Depends(get_db),
 ) -> APIKey:
     service = RateLimitService(
-        repository=RequestUsageRepository(db),
+        repository=RedisRateLimitRepository(
+            redis_client
+        ),
     )
 
     try:
@@ -30,7 +32,9 @@ def enforce_rate_limit(
             status_code=429,
             detail=str(exc),
             headers={
-                "Retry-After": "60",
+                "Retry-After": str(
+                    exc.retry_after_seconds
+                ),
             },
         ) from exc
 

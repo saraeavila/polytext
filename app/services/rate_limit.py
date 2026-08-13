@@ -1,18 +1,26 @@
-from datetime import datetime, timedelta, timezone
 from typing import Protocol
 
 
 class RateLimitRepository(Protocol):
-    def count_since(
+    def increment(
         self,
         api_key_id: int,
-        since: datetime,
-    ) -> int:
+    ) -> tuple[int, int]:
         ...
 
 
 class RateLimitExceededError(Exception):
-    pass
+    def __init__(
+        self,
+        limit_per_minute: int,
+        retry_after_seconds: int,
+    ):
+        self.retry_after_seconds = retry_after_seconds
+
+        super().__init__(
+            f"Rate limit of "
+            f"{limit_per_minute} requests per minute exceeded"
+        )
 
 
 class RateLimitService:
@@ -27,15 +35,12 @@ class RateLimitService:
         api_key_id: int,
         limit_per_minute: int,
     ) -> None:
-        now = datetime.now(timezone.utc)
-        since = now - timedelta(minutes=1)
-
-        request_count = self._repository.count_since(
+        count, retry_after = self._repository.increment(
             api_key_id=api_key_id,
-            since=since,
         )
 
-        if request_count >= limit_per_minute:
+        if count > limit_per_minute:
             raise RateLimitExceededError(
-                f"Rate limit of {limit_per_minute} requests per minute exceeded"
+                limit_per_minute=limit_per_minute,
+                retry_after_seconds=retry_after,
             )

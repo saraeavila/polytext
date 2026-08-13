@@ -1,6 +1,3 @@
-from datetime import datetime
-
-from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.db.models.request_usage import RequestUsage
@@ -31,19 +28,3 @@ class RequestUsageRepository:
         self._db.refresh(usage)
 
         return usage
-
-    def count_since(
-        self,
-        api_key_id: int,
-        since: datetime,
-    ) -> int:
-        statement = (
-            select(func.count())
-            .select_from(RequestUsage)
-            .where(
-                RequestUsage.api_key_id == api_key_id,
-                RequestUsage.created_at >= since,
-            )
-        )
-
-        return self._db.scalar(statement) or 0

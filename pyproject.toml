@@ -20,6 +20,7 @@ dependencies = [
     "psycopg[binary]>=3,<4",
     "alembic>=1.18,<2",
     "pydantic[email]",
+    "redis>=5,<9",
 ]
 
 [project.optional-dependencies]

@@ -7,23 +7,27 @@ from app.services.rate_limit import (
 
 
 class FakeRateLimitRepository:
-    def __init__(self, request_count: int):
-        self.request_count = request_count
-
-    def count_since(
+    def __init__(
         self,
-        api_key_id,
-        since,
+        count: int,
+        ttl: int = 60,
     ):
-        return self.request_count
+        self.count = count
+        self.ttl = ttl
+
+    def increment(
+        self,
+        api_key_id: int,
+    ) -> tuple[int, int]:
+        return self.count, self.ttl
 
 
 def test_request_below_limit_is_allowed():
-    repository = FakeRateLimitRepository(
-        request_count=4,
+    service = RateLimitService(
+        FakeRateLimitRepository(
+            count=4,
+        )
     )
-
-    service = RateLimitService(repository)
 
     service.check(
         api_key_id=1,
@@ -31,29 +35,36 @@ def test_request_below_limit_is_allowed():
     )
 
 
-def test_request_at_limit_is_rejected():
-    repository = FakeRateLimitRepository(
-        request_count=5,
+def test_request_at_limit_is_allowed():
+    service = RateLimitService(
+        FakeRateLimitRepository(
+            count=5,
+        )
     )
 
-    service = RateLimitService(repository)
-
-    with pytest.raises(RateLimitExceededError):
-        service.check(
-            api_key_id=1,
-            limit_per_minute=5,
-        )
+    service.check(
+        api_key_id=1,
+        limit_per_minute=5,
+    )
 
 
 def test_request_above_limit_is_rejected():
-    repository = FakeRateLimitRepository(
-        request_count=10,
+    service = RateLimitService(
+        FakeRateLimitRepository(
+            count=6,
+            ttl=37,
+        )
     )
 
-    service = RateLimitService(repository)
-
-    with pytest.raises(RateLimitExceededError):
+    with pytest.raises(
+        RateLimitExceededError
+    ) as exc_info:
         service.check(
             api_key_id=1,
             limit_per_minute=5,
         )
+
+    assert (
+        exc_info.value.retry_after_seconds
+        == 37
+    )
