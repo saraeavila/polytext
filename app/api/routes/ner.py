@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Request
 
-from app.api.dependencies.auth import require_api_key
+from app.api.dependencies.rate_limit import enforce_rate_limit
 from app.api.dependencies.usage import mark_ner_usage
 from app.schemas.ner import NERRequest, NERResponse
 from app.services.language import LanguageService
@@ -30,7 +30,7 @@ def get_ner_service(request: Request) -> NERAnalyzer:
     "/entities",
     response_model=NERResponse,
     dependencies=[
-        Depends(require_api_key),
+        Depends(enforce_rate_limit),
         Depends(mark_ner_usage),
     ],
 )

@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.dependencies.auth import require_api_key
+from app.api.dependencies.rate_limit import enforce_rate_limit
 from app.api.routes.sentiment import get_sentiment_service
 from app.main import app
 from app.domain.sentiment import SentimentLabel, SentimentPrediction
@@ -28,7 +28,7 @@ def client():
         lambda: FakeSentimentService()
     )
 
-    app.dependency_overrides[require_api_key] = lambda: object()
+    app.dependency_overrides[enforce_rate_limit] = lambda: object()
 
     with TestClient(app) as client:
         yield client
@@ -38,7 +38,7 @@ def client():
         None,
     )
     app.dependency_overrides.pop(
-        require_api_key,
+        enforce_rate_limit,
         None,
     )
 
