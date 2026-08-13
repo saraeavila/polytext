@@ -8,6 +8,7 @@ from app.api.routes.api_keys import router as api_keys_router
 from app.api.routes.api_users import router as api_users_router
 from app.api.routes.ner import router as ner_router
 from app.api.routes.sentiment import router as sentiment_router
+from app.api.routes.usage import router as usage_router
 from app.core.logging import configure_logging
 from app.models.adapters.language.fasttext_detector import (
     FastTextLanguageDetector,
@@ -37,6 +38,7 @@ app.include_router(sentiment_router, prefix="/v1")
 app.include_router(ner_router, prefix="/v1")
 app.include_router(api_users_router, prefix="/v1")
 app.include_router(api_keys_router, prefix="/v1")
+app.include_router(usage_router, prefix="/v1")
 
 @app.get("/health")
 def health_check():

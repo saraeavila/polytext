@@ -24,6 +24,28 @@ class FakeUsageRepository:
         self.records.append(record)
         return record
 
+    def get_summary_since(
+        self,
+        api_key_id,
+        since,
+    ):
+        return (
+            10,
+            8,
+            2,
+            123.456,
+        )
+
+    def get_task_counts_since(
+        self,
+        api_key_id,
+        since,
+    ):
+        return {
+            "sentiment": 7,
+            "ner": 3,
+        }
+
 
 def test_usage_service_records_request():
     repository = FakeUsageRepository()
@@ -41,3 +63,27 @@ def test_usage_service_records_request():
     assert result["task"] == "sentiment"
     assert result["status_code"] == 200
     assert result["latency_ms"] == 123.45
+
+
+def test_usage_summary():
+    repository = FakeUsageRepository()
+    service = UsageService(repository)
+
+    summary = service.get_summary(
+        api_key_id=3,
+        hours=24,
+    )
+
+    assert summary.api_key_id == 3
+    assert summary.period_hours == 24
+
+    assert summary.total_requests == 10
+    assert summary.successful_requests == 8
+    assert summary.failed_requests == 2
+
+    assert summary.average_latency_ms == 123.46
+
+    assert sum(
+        task.requests
+        for task in summary.tasks
+    ) == 10
