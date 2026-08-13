@@ -6,6 +6,7 @@ from app.domain.classification import (
     ClassificationPrediction,
 )
 from app.models.errors import ModelOutputError
+from app.models.lazy import ThreadSafeLazyLoader
 
 
 MODEL_NAME = (
@@ -19,17 +20,22 @@ class MDeBERTaMultilingualClassificationModel:
         self,
         classifier: Callable | None = None,
     ):
-        self._classifier = classifier
+        self._classifier_loader = (
+            ThreadSafeLazyLoader(
+                factory=self._create_classifier,
+                value=classifier,
+            )
+        )
+
+    def _create_classifier(self):
+        return pipeline(
+            "zero-shot-classification",
+            model=MODEL_NAME,
+            tokenizer=MODEL_NAME,
+        )
 
     def _get_classifier(self):
-        if self._classifier is None:
-            self._classifier = pipeline(
-                "zero-shot-classification",
-                model=MODEL_NAME,
-                tokenizer=MODEL_NAME,
-            )
-
-        return self._classifier
+        return self._classifier_loader.get()
 
     def predict(
         self,

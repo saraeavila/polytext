@@ -221,3 +221,6 @@ __marimo__/
 
 # Downloaded model artifacts
 resources/models/*.ftz
+
+# Load test results
+load_tests/results/

@@ -4,6 +4,7 @@ from transformers import pipeline
 
 from app.domain.ner import EntityLabel, EntityPrediction
 from app.models.errors import ModelOutputError
+from app.models.lazy import ThreadSafeLazyLoader
 
 
 MODEL_NAME = "Davlan/xlm-roberta-base-ner-hrl"
@@ -22,15 +23,26 @@ class TokenClassifier(Protocol):
 
 class DavlanMultilingualNERModel:
     def __init__(self, classifier: TokenClassifier | None = None) -> None:
-        self._pipeline = classifier or pipeline(
+        self._classifier_loader = (
+            ThreadSafeLazyLoader(
+                factory=self._create_classifier,
+                value=classifier,
+            )
+        )
+
+    def _create_classifier(self):
+        return pipeline(
             "token-classification",
             model=MODEL_NAME,
             tokenizer=MODEL_NAME,
             aggregation_strategy="simple",
         )
 
+    def _get_classifier(self):
+        return self._classifier_loader.get()
+
     def predict(self, text: str) -> list[EntityPrediction]:
-        results = self._pipeline(text)
+        results = self._get_classifier()(text)
 
         entities = []
 
