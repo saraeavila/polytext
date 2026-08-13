@@ -76,3 +76,11 @@ class APIKeyService:
             )
 
         return self._repository.revoke(api_key)
+
+    def list_keys(
+        self,
+        user_id: int,
+    ) -> list[APIKey]:
+        return self._repository.list_by_user_id(
+            user_id=user_id,
+        )

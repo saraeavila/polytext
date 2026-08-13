@@ -36,6 +36,13 @@ class FakeAPIKeyRepository:
 
         return api_key
 
+    def list_by_user_id(self, user_id: int):
+        return [
+            key
+            for key in self.keys.values()
+            if key.user_id == user_id
+        ]
+
 
 @pytest.fixture
 def repository():
@@ -81,3 +88,19 @@ def test_unknown_key_cannot_be_revoked(service):
             api_key_id=404,
             requesting_user_id=42,
         )
+
+
+def test_list_keys_returns_only_users_keys(repository, service):
+    first = FakeAPIKey(id=1, user_id=1)
+    second = FakeAPIKey(id=2, user_id=2)
+
+    repository.keys[1] = first
+    repository.keys[2] = second
+
+    result = service.list_keys(
+        user_id=1,
+    )
+
+    assert len(result) == 1
+    assert result[0].id == first.id
+    assert result[0].user_id == 1

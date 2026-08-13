@@ -50,3 +50,17 @@ class APIKeyRepository:
             self._db.refresh(api_key)
 
         return api_key
+
+    def list_by_user_id(
+        self,
+        user_id: int,
+    ) -> list[APIKey]:
+        statement = (
+            select(APIKey)
+            .where(APIKey.user_id == user_id)
+            .order_by(APIKey.created_at.desc())
+        )
+
+        return list(
+            self._db.scalars(statement).all()
+        )

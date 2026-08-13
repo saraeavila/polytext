@@ -8,6 +8,7 @@ from app.repositories.api_key import APIKeyRepository
 from app.repositories.api_user import APIUserRepository
 from app.schemas.api_key import (
     APIKeyCreateResponse,
+    APIKeyListItem,
     APIKeyRevokeResponse,
 )
 from app.services.api_key import (
@@ -91,3 +92,27 @@ def revoke_api_key(
         key_prefix=revoked.key_prefix,
         revoked_at=revoked.revoked_at,
     )
+
+
+@router.get(
+    "/keys",
+    response_model=list[APIKeyListItem],
+)
+def list_api_keys(
+    current_key: APIKey = Depends(require_api_key),
+    service: APIKeyService = Depends(get_api_key_service),
+) -> list[APIKeyListItem]:
+    api_keys = service.list_keys(
+        user_id=current_key.user_id,
+    )
+
+    return [
+        APIKeyListItem(
+            id=api_key.id,
+            key_prefix=api_key.key_prefix,
+            rate_limit_per_minute=api_key.rate_limit_per_minute,
+            created_at=api_key.created_at,
+            revoked_at=api_key.revoked_at,
+        )
+        for api_key in api_keys
+    ]
