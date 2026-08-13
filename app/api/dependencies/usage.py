@@ -10,3 +10,4 @@ def mark_usage_task(task: str):
 
 mark_sentiment_usage = mark_usage_task("sentiment")
 mark_ner_usage = mark_usage_task("ner")
+mark_classification_usage = mark_usage_task("classification")

@@ -1,4 +1,7 @@
 import app.models.setup as setup
+from app.models.adapters.classification.mdeberta_multilingual import (
+    MDeBERTaMultilingualClassificationModel,
+)
 
 
 class FakeSpanishModel:
@@ -64,3 +67,17 @@ def test_portuguese_routes_to_multilingual_fallback(monkeypatch):
     model = registry.get("sentiment", "pt")
 
     assert isinstance(model, FakeMultilingualModel)
+
+
+def test_classification_model_is_registered():
+    registry = setup.create_model_registry()
+
+    model = registry.get(
+        task="classification",
+        language="en",
+    )
+
+    assert isinstance(
+        model,
+        MDeBERTaMultilingualClassificationModel,
+    )

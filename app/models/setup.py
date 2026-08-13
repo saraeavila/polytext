@@ -7,6 +7,9 @@ from app.models.adapters.sentiment.robertuito_spanish import (
 from app.models.adapters.ner.davlan_multilingual import (
     DavlanMultilingualNERModel,
 )
+from app.models.adapters.classification.mdeberta_multilingual import (
+    MDeBERTaMultilingualClassificationModel,
+)
 from app.models.registry import ModelRegistry
 
 
@@ -29,6 +32,12 @@ def create_model_registry() -> ModelRegistry:
         task="ner",
         language="*",
         factory=DavlanMultilingualNERModel,
+    )
+
+    registry.register(
+        "classification",
+        "*",
+        MDeBERTaMultilingualClassificationModel,
     )
 
     return registry
