@@ -1,6 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.dependencies.admin import (
+    require_admin_key,
+)
 from app.api.dependencies.auth import require_api_key
 from app.db.models.api_key import APIKey
 from app.db.session import get_db
@@ -37,6 +40,9 @@ def get_api_key_service(
     "/users/{user_id}/keys",
     response_model=APIKeyCreateResponse,
     status_code=201,
+    dependencies=[
+        Depends(require_admin_key),
+    ],
 )
 def create_api_key(
     user_id: int,

@@ -53,3 +53,63 @@ def test_get_settings_is_cached():
     assert first is second
 
     get_settings.cache_clear()
+
+
+def test_development_is_not_production():
+    settings = Settings(
+        environment="development"
+    )
+
+    assert settings.is_production is False
+
+
+def test_production_environment():
+    settings = Settings(
+        environment="production"
+    )
+
+    assert settings.is_production is True
+
+
+def test_allowed_hosts_are_parsed():
+    settings = Settings(
+        allowed_hosts=(
+            "localhost,"
+            "127.0.0.1,"
+            "api.example.com"
+        )
+    )
+
+    assert settings.allowed_hosts_list == [
+        "localhost",
+        "127.0.0.1",
+        "api.example.com",
+    ]
+
+
+def test_empty_cors_origins():
+    settings = Settings(
+        cors_allowed_origins=""
+    )
+
+    assert (
+        settings.cors_allowed_origins_list
+        == []
+    )
+
+
+def test_cors_origins_are_parsed():
+    settings = Settings(
+        cors_allowed_origins=(
+            "https://example.com,"
+            "https://app.example.com"
+        )
+    )
+
+    assert (
+        settings.cors_allowed_origins_list
+        == [
+            "https://example.com",
+            "https://app.example.com",
+        ]
+    )
