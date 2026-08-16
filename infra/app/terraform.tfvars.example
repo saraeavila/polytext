@@ -1,0 +1,8 @@
+aws_region    = "us-east-2"
+project_name  = "polytext"
+environment   = "production"
+
+image_tag         = "latest"
+ecs_cpu           = 1024
+ecs_memory        = 8192
+ecs_desired_count = 1

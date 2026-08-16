@@ -1,4 +1,5 @@
 from functools import lru_cache
+from urllib.parse import quote_plus
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -14,6 +15,13 @@ class Settings(BaseSettings):
         "polytext:polytext@localhost:5432/polytext"
     )
 
+    database_host: str | None = None
+    database_port: int = 5432
+    database_name: str = "polytext"
+    database_user: str | None = None
+    database_password: SecretStr | None = None
+    database_sslmode: str | None = None
+
     redis_url: str = "redis://localhost:6379/0"
 
     fasttext_model_path: str = (
@@ -27,6 +35,32 @@ class Settings(BaseSettings):
     )
 
     cors_allowed_origins: str = ""
+
+    @property
+    def effective_database_url(self) -> str:
+        """Return the database URL for the current deployment environment."""
+
+        if self.database_host is None:
+            return self.database_url
+
+        if self.database_user is None or self.database_password is None:
+            raise ValueError(
+                "DATABASE_USER and DATABASE_PASSWORD are required "
+                "when DATABASE_HOST is configured."
+            )
+
+        username = quote_plus(self.database_user)
+        password = quote_plus(self.database_password.get_secret_value())
+
+        url = (
+            f"postgresql+psycopg://{username}:{password}"
+            f"@{self.database_host}:{self.database_port}/{self.database_name}"
+        )
+
+        if self.database_sslmode:
+            url = f"{url}?sslmode={quote_plus(self.database_sslmode)}"
+
+        return url
 
     @property
     def is_production(self) -> bool:

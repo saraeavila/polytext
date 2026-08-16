@@ -8,7 +8,7 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-DATABASE_URL = settings.database_url
+DATABASE_URL = settings.effective_database_url
 
 
 engine = create_engine(

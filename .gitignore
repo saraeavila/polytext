@@ -224,3 +224,16 @@ resources/models/*.ftz
 
 # Load test results
 load_tests/results/
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.tfstate.lock.info
+crash.log
+crash.*.log
+
+# Terraform variable files may contain deployment-specific values
+*.tfvars
+!*.tfvars.example

@@ -1,3 +1,6 @@
+import pytest
+from pydantic import SecretStr
+
 from app.core.config import Settings, get_settings
 
 
@@ -113,3 +116,45 @@ def test_cors_origins_are_parsed():
             "https://app.example.com",
         ]
     )
+
+
+def test_effective_database_url_uses_database_url_by_default():
+    settings = Settings(
+        database_url="postgresql+psycopg://user:pass@localhost:5432/polytext"
+    )
+
+    assert (
+        settings.effective_database_url
+        == "postgresql+psycopg://user:pass@localhost:5432/polytext"
+    )
+
+
+def test_effective_database_url_builds_from_components():
+    settings = Settings(
+        database_host="polytext.example.amazonaws.com",
+        database_port=5432,
+        database_name="polytext",
+        database_user="polytext",
+        database_password=SecretStr("secret-password"),
+        database_sslmode="require",
+    )
+
+    assert settings.effective_database_url == (
+        "postgresql+psycopg://polytext:secret-password"
+        "@polytext.example.amazonaws.com:5432/polytext"
+        "?sslmode=require"
+    )
+
+
+def test_effective_database_url_requires_aws_credentials():
+    settings = Settings(
+        database_host="polytext.example.amazonaws.com",
+        database_user=None,
+        database_password=None,
+    )
+
+    with pytest.raises(
+        ValueError,
+        match="DATABASE_USER and DATABASE_PASSWORD",
+    ):
+        settings.effective_database_url
