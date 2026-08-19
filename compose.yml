@@ -123,6 +123,20 @@ services:
       retries: 5
       start_period: 20s
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    ports:
+      - "3000:80"
+
+    depends_on:
+      api:
+        condition: service_healthy
+
+    restart: unless-stopped
+
 volumes:
   polytext_postgres_data:
   polytext_hf_cache:
