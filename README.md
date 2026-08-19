@@ -6,9 +6,9 @@ The platform supports sentiment analysis, named-entity recognition, automatic la
 
 ## Demo
 
-> Interactive Playground screenshots coming soon.
+![PolyText named-entity recognition playground](docs/images/polytext-entities.png)
 
-The PolyText Playground provides a React-based interface for testing each NLP task, selecting or automatically detecting languages, inspecting model predictions, and viewing request latency.
+PolyText includes an interactive React playground for sentiment analysis, named-entity recognition, and zero-shot classification.
 
 ## Features
 
@@ -231,6 +231,24 @@ You will need:
 
 - Docker
 - Docker Compose
+- Python 3.11+
+
+### Configure the Environment
+
+Create your local environment file:
+
+```bash
+cp .env.example .env
+```
+
+Generate a secure local administrative key and set it as:
+
+```text
+POLYTEXT_ADMIN_KEY=<your-generated-key>
+```
+
+The administrative key is used only for local API-key provisioning and must
+never be exposed to the frontend or committed to Git.
 
 ### Start PolyText
 
@@ -240,13 +258,34 @@ From the repository root:
 docker compose up -d --build
 ```
 
-Once the containers are healthy, open:
+The frontend is served through Nginx, which proxies API requests to the FastAPI service.
+
+### Create a Playground API Key
+
+Create a local user and API key:
+
+```bash
+make create-api-key
+```
+
+PolyText will print a key beginning with:
+
+```text
+poly_sk_
+```
+
+The plaintext API key is displayed only when it is created.
+
+### Open the Playground
+
+Open:
 
 ```text
 http://localhost:3000
 ```
 
-The frontend is served through Nginx, which proxies API requests to the FastAPI service.
+Paste the generated `poly_sk_...` key into the API-key field and begin using
+the sentiment, entity-recognition, and classification tools.
 
 ### Check Service Status
 

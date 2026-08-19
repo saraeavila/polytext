@@ -3,6 +3,7 @@ AWS_CONFIRM_VALUE := I_ACCEPT_AWS_CHARGES
 
 .PHONY: infra-init infra-fmt infra-validate infra-check
 .PHONY: aws-confirm aws-plan aws-up aws-down
+.PHONY: create-api-key
 
 
 # ----------------------------------
@@ -20,6 +21,14 @@ infra-validate:
 
 infra-check: infra-init infra-fmt infra-validate
 	@echo "PolyText Terraform configuration is valid."
+
+
+# ----------------------------------
+# Local development commands
+# ----------------------------------
+
+create-api-key:
+	@python scripts/create_api_key.py
 
 
 # ----------------------------------
